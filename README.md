@@ -3,12 +3,7 @@ Scraping the web with confident.
 
 ## Introduction
 
-`webscrapingjs` goals is to create as many as scraper scripts from various topics/categories and sources. It's like a bank of scraper scripts targeting various web.
-
-## Requirements
-
-- For JavaScript scraper projects, you need to have [Node.js](https://nodejs.org/en/) installed on your machine.
-- If you want to use remote browser to do scraping, I suggest using Browserless instance, we use Docker to run it. You can follow the instruction [here](https://docs.browserless.io/docs/docker.html) to install it on your machine. Default is using built-in Chromium when we install Playwright.
+`webscrapingjs` goals is to create as many as scraper scripts from various topics/categories and web sources. It's like a collection of scraper scripts targeting various web.
 
 ## How to run
 
@@ -81,14 +76,6 @@ We are using Vitest for running test. The test purpose is very crucial here to d
 npm run test
 ```
 
-## How to add new scraper
-
-We know every service has it's own way to scrape their data. So, we will try to make it as easy as possible to add new scraper to this project. Basically, you just need to create a new file in the `src` directory and export a function named `scrape`. This function should return a `Promise` that resolves to an array of objects. Each file is responsible for scraping one service only.
-
-## What engine is used to run the scraper
-
-We use [Playwright](https://playwright.dev/) to run the scraper. It's a browser automation library that can run on Chromium, Firefox, and WebKit. It's a great library and I highly recommend it. We import the library on a scraper file and use external Chrome via Chrome DevTools Protocol to run the scraper. This way, we can run the scraper without having to install Chromium on the machine. For this purpose we use Browserless.io service. You can use your own service or install Chromium on your machine if you want.
-
 ## Additional information
 
 Implementing a scraper is not an easy task. You need to know how to use the browser automation library, how to use the Chrome DevTools Protocol, and how to use the DOM API. You also need to know how to use the `async/await` syntax and how to use `Promise`. If you are not familiar with these concepts, I suggest you to learn them first before trying to implement a scraper. Our target is create as many as possible scraper for many public services. So, we need to make sure that the code is easy to understand and easy to maintain.
@@ -97,7 +84,11 @@ At some point maybe you will need to dealing with proxy, captcha, or other thing
 
 Scraping implementation usually involves a lot of trial and error. You need to try many things to make sure that your scraper is working properly. You need to know how to debug your scraper and how to fix the problem. In real world scenario you also likely to put a scraper in a server and run it periodically so you can get always fresh data.
 
-Long story short, it's complicated. But, it's also fun. So, let's get started. Happy scraping!
+Long story short, it's complicated. But, it's also fun.
+
+## Using remote browser
+
+If you want to use remote browser to do the scraping, I suggest using Browserless instance, we use Docker to run it. You can follow the instruction [here](https://docs.browserless.io/docs/docker.html) to install it on your machine. On each script we can configure to use remote browser (via Chrome DevTools Protocol) by setting the `remoteBrowserUri` on `scrape()` function argument. Just see the source code for the details.
 
 ## Questions and professional services
 
