@@ -1,0 +1,26 @@
+{
+  "name": "webscrapingjs",
+  "version": "0.0.1",
+  "description": "",
+  "main": "./dist/index.js",
+  "type": "module",
+  "scripts": {
+    "format": "prettier ./src ./*.ts --write",
+    "test": "vitest --run",
+    "test:no-threads": "vitest --run --no-threads",
+    "build": "tsup ./src/ --clean"
+  },
+  "keywords": [],
+  "author": "Sony Arianto Kurniawan <sony@sony-ak.com>",
+  "license": "MIT",
+  "dependencies": {
+    "playwright": "^1.38.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.2",
+    "jiti": "^1.20.0",
+    "prettier": "^3.0.3",
+    "tsup": "^7.2.0",
+    "vitest": "^0.34.6"
+  }
+}
