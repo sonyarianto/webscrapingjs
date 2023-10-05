@@ -5,40 +5,31 @@ import {
   processExcludedResourceTypes,
   verboseBrowserUsed,
   getAttributeFromLocatorSelector,
+  getTextContentFromLocatorSelector,
+  getArrayFromLocatorSelector,
+  getArraySplitFromAttributeFromLocatorSelector,
+  getPublishedDatetimeVariant1,
+  getPublishedDatetimeVariant2,
 } from "../../../utils";
 import type { News, ScrapeArgument } from "../../../types";
 
 const baseUrlPath = "https://indeks.kompas.com/";
-const listPageItemsSelector =
-  'xpath=//div[contains(@class, "latest--indeks")]/div[contains(@class, "article__list")]';
+const queryStringStart = "?page="; // e.g. "?page="
+const listPageItemsSelector = "div.latest--indeks > div.article__list";
 const listPageTitleSelector = "h3.article__title";
 const listPageLinkSelector = "a[href]";
 const listPageImageSelector = ".article__list__asset img[src]";
-
 const detailImageUrlSelector = 'meta[property="og:image"]';
 const detailLocalCategorySelector = 'meta[name="content_category"]';
 const detailLocalSubCategorySelector = 'meta[name="content_subcategory"]';
 const detailLocalTagsSelector = 'meta[name="content_tags"]';
-const detailAuthorsSelector = 'meta[name="author"]';
+const detailAuthorsSelector = 'meta[name="content_author"]';
 const detailShortDescriptionSelector = 'meta[property="og:description"]';
 const detailPublishedDateTimeSelector =
   'meta[property="article:published_time"]';
-
 const timeZoneId = "Asia/Jakarta";
 const listPageExcludedResourceTypes = [...excludedResourceTypes];
 const detailExcludedResourceTypes = [...excludedResourceTypes];
-
-let _countListPageItems = 0;
-
-listPageExcludedResourceTypes.splice(
-  listPageExcludedResourceTypes.indexOf("image"),
-  1,
-);
-
-detailExcludedResourceTypes.splice(
-  detailExcludedResourceTypes.indexOf("image"),
-  1,
-);
 
 export const scrape = async (scrape_argument: ScrapeArgument = {}) => {
   try {
@@ -51,24 +42,18 @@ export const scrape = async (scrape_argument: ScrapeArgument = {}) => {
 
     let allItems: News[] = [];
 
+    // Start scraping of the list page
+
     let pageIndexes = Array.from(
       { length: scrape_argument.endPageIndex ?? 1 },
       (_, i) => i + (scrape_argument.startPageIndex ?? 1),
     );
 
-    if (scrape_argument.testListCount ?? false) {
-      pageIndexes = [1];
-    }
-
-    if (scrape_argument.testDetailData ?? false) {
-      pageIndexes = [1];
-    }
-
     await Promise.allSettled(
       pageIndexes.map(async (pageIndex) => {
         const listPage = await context.newPage();
 
-        const listPageUrl = `${baseUrlPath}?page=${pageIndex}`;
+        const listPageUrl = `${baseUrlPath}${queryStringStart}${pageIndex}`;
 
         await processExcludedResourceTypes(
           listPage,
@@ -85,20 +70,6 @@ export const scrape = async (scrape_argument: ScrapeArgument = {}) => {
           console.log(
             `P#${pageIndex} C#${countListPageItems} U#${listPageUrl}`,
           );
-        }
-
-        if (scrape_argument.testListCount ?? false) {
-          await listPage.close();
-          await context.close();
-          await browser.close();
-
-          _countListPageItems = countListPageItems;
-
-          return;
-        }
-
-        if (scrape_argument.testDetailData ?? false) {
-          listPageItemsLocator = listPageItemsLocator.first();
         }
 
         const resultListPageItems = await listPageItemsLocator.evaluateAll(
@@ -144,13 +115,12 @@ export const scrape = async (scrape_argument: ScrapeArgument = {}) => {
 
         listPage.close();
 
+        // Start scraping of the detail page
+
         await Promise.allSettled(
           resultListPageItems.map(async (result, index) => {
             if (!result.link) return;
             if (!result.title) return;
-
-            result.image_url_on_list_2 =
-              result.image_url_on_list?.split("?")[0];
 
             const detailPage = await context.newPage();
 
@@ -167,88 +137,96 @@ export const scrape = async (scrape_argument: ScrapeArgument = {}) => {
 
             const detailPageLocator = detailPage.locator("html");
 
-            // Get image_url_on_detail
+            const listImageUrlWithoutQueryString =
+              result.image_url_on_list?.split("?")[0] ?? null;
+
+            // Get detailImageUrl
 
             let detailImageUrl = await getAttributeFromLocatorSelector(
               detailPageLocator,
               detailImageUrlSelector,
               "content",
             );
-            result.image_url_on_detail = detailImageUrl;
 
-            // Get image_url_on_detail_2, without query string
+            // Get detailImageUrlWithoutQueryString, without query string
 
             const detailImageUrlWithoutQueryString =
               detailImageUrl?.split("?")[0];
-            result.image_url_on_detail_2 = detailImageUrlWithoutQueryString;
 
-            // Get local_category
+            // Get detailLocalCategory
 
             let detailLocalCategory = await getAttributeFromLocatorSelector(
               detailPageLocator,
               detailLocalCategorySelector,
               "content",
             );
-            result.local_category = detailLocalCategory ?? null;
 
-            // Get local sub category
+            // Get detailLocalSubCategory
 
-            let localSubCategory = await getAttributeFromLocatorSelector(
+            let detailLocalSubCategory = await getAttributeFromLocatorSelector(
               detailPageLocator,
               detailLocalSubCategorySelector,
               "content",
             );
-            result.local_sub_category = localSubCategory?.trim() ?? null;
 
-            // Get local tags
+            // Get detailLocalTags
 
-            let localTags = await getAttributeFromLocatorSelector(
+            let detailLocalTags =
+              await getArraySplitFromAttributeFromLocatorSelector(
+                detailPageLocator,
+                detailLocalTagsSelector,
+                "content",
+                ",",
+              );
+
+            // Get detailAuthors
+
+            let detailAuthors =
+              (await getArraySplitFromAttributeFromLocatorSelector(
+                detailPageLocator,
+                detailAuthorsSelector,
+                "content",
+                ",",
+              )) as string[] | null;
+
+            // Get detailShortDescription
+
+            let detailShortDescription = await getAttributeFromLocatorSelector(
               detailPageLocator,
-              detailLocalTagsSelector,
+              detailShortDescriptionSelector,
               "content",
             );
-            result.local_tags =
-              localTags?.split(",").map((tag) => tag.trim()) ?? null;
-
-            // Get authors
-
-            let authors = await getAttributeFromLocatorSelector(
-              detailPageLocator,
-              detailAuthorsSelector,
-              "content",
-            );
-            result.authors = authors?.split(",") ?? null;
-
-            // Get short_description
-
-            let detailShortDescription =
-              (
-                await detailPageLocator.evaluate((el, args) => {
-                  const description = el.querySelector(args) as HTMLMetaElement;
-                  return description?.content?.trim() ?? null;
-                }, detailShortDescriptionSelector)
-              )?.trim() ?? null;
-            result.short_description = detailShortDescription;
 
             // Get published_datetime
 
-            let publishedDateTime = await getAttributeFromLocatorSelector(
+            let publishedDateTime = (await getAttributeFromLocatorSelector(
               detailPageLocator,
               detailPublishedDateTimeSelector,
               "content",
-            );
-            result.published_datetime = publishedDateTime;
+            )) as string;
+
+            // Get publishedDateTimeUtc
 
             const publishedDateTimeUtc = new Date(
-              publishedDateTime as string,
+              publishedDateTime,
             ).toISOString();
-            result.published_datetime_utc = publishedDateTimeUtc;
-
-            result.internal_index = index;
 
             await detailPage.close();
 
-            allItems.push(result);
+            allItems.push({
+              ...result,
+              image_url_on_list_2: listImageUrlWithoutQueryString,
+              image_url_on_detail: detailImageUrl,
+              image_url_on_detail_2: detailImageUrlWithoutQueryString,
+              local_category: detailLocalCategory,
+              local_sub_category: detailLocalSubCategory,
+              local_tags: detailLocalTags,
+              authors: detailAuthors,
+              short_description: detailShortDescription,
+              published_datetime: publishedDateTime,
+              published_datetime_utc: publishedDateTimeUtc,
+              _internal_index: index,
+            });
           }),
         );
       }),
@@ -256,10 +234,6 @@ export const scrape = async (scrape_argument: ScrapeArgument = {}) => {
 
     await context.close();
     await browser.close();
-
-    if (scrape_argument.testListCount ?? false) {
-      return _countListPageItems;
-    }
 
     return allItems;
   } catch (error) {

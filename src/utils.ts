@@ -110,7 +110,10 @@ export async function getArraySplitFromAttributeFromLocatorSelector(
   const result = await locator.evaluate(
     (el, args) => {
       const element = el.querySelector(args.selector) as HTMLMetaElement;
-      return element?.content?.trim().split(args.split);
+      return element?.content
+        ?.trim()
+        .split(args.split)
+        .map((item) => item.trim());
     },
     {
       selector: selector,
