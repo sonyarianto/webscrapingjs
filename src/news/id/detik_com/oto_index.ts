@@ -15,12 +15,10 @@ import type { News, ScrapeArgument } from "../../../types";
 
 const baseUrlPath = "https://sport.detik.com/indeks/";
 const queryStringStart = ""; // e.g. "?page="
-
 const listPageItemsSelector = 'div[id="indeks-container"] article';
 const listPageTitleSelector = "h3.media__title";
 const listPageLinkSelector = "a[href]";
 const listPageImageSelector = ".media__image img[src]";
-
 const detailImageUrlSelector = 'meta[property="og:image"]';
 const detailLocalCategorySelector = "div.page__breadcrumb > a:last-child";
 const detailLocalSubCategorySelector = null;
@@ -28,7 +26,6 @@ const detailLocalTagsSelector = "div.detail__body-tag > div.nav > a.nav__item";
 const detailAuthorsSelector = 'meta[name="author"]';
 const detailShortDescriptionSelector = 'meta[property="og:description"]';
 const detailPublishedDateTimeSelector = null;
-
 const timeZoneId = "Asia/Jakarta";
 const listPageExcludedResourceTypes = [...excludedResourceTypes];
 const detailExcludedResourceTypes = [...excludedResourceTypes];
@@ -221,9 +218,9 @@ export const scrape = async (scrape_argument: ScrapeArgument = {}) => {
               image_url_on_list_2: listImageUrlWithoutQueryString,
               image_url_on_detail: detailImageUrl,
               image_url_on_detail_2: detailImageUrlWithoutQueryString,
-              local_category: detailLocalCategory ?? null,
-              local_tags: detailLocalTags ?? null,
-              authors: detailAuthors ?? null,
+              local_category: detailLocalCategory,
+              local_tags: detailLocalTags,
+              authors: detailAuthors,
               short_description: detailShortDescription,
               published_datetime: publishedDateTime,
               published_datetime_utc: publishedDateTimeUtc,

@@ -15,12 +15,10 @@ import type { News, ScrapeArgument } from "../../../types";
 
 const baseUrlPath = "https://wolipop.detik.com/indeks/";
 const queryStringStart = ""; // e.g. "?page="
-
 const listPageItemsSelector = "div.list_index ul > li";
 const listPageTitleSelector = "h3.title";
 const listPageLinkSelector = "a[href]";
 const listPageImageSelector = null;
-
 const detailImageUrlSelector = 'meta[property="og:image"]';
 const detailLocalCategorySelector = "div.page__breadcrumb > a:last-child";
 const detailLocalSubCategorySelector = null;
@@ -28,7 +26,6 @@ const detailLocalTagsSelector = 'meta[name="keywords"]';
 const detailAuthorsSelector = 'meta[name="author"]';
 const detailShortDescriptionSelector = 'meta[property="og:description"]';
 const detailPublishedDateTimeSelector = null;
-
 const timeZoneId = "Asia/Jakarta";
 const listPageExcludedResourceTypes = [...excludedResourceTypes];
 const detailExcludedResourceTypes = [...excludedResourceTypes];
@@ -216,9 +213,9 @@ export const scrape = async (scrape_argument: ScrapeArgument = {}) => {
               image_url_on_list_2: listImageUrlWithoutQueryString,
               image_url_on_detail: detailImageUrl,
               image_url_on_detail_2: detailImageUrlWithoutQueryString,
-              local_category: detailLocalCategory ?? null,
-              local_tags: detailLocalTags ?? null,
-              authors: detailAuthors ?? null,
+              local_category: detailLocalCategory,
+              local_tags: detailLocalTags,
+              authors: detailAuthors,
               short_description: detailShortDescription,
               published_datetime: publishedDateTime,
               published_datetime_utc: publishedDateTimeUtc,
