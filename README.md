@@ -76,23 +76,13 @@ We are using Vitest for running test. The test purpose is very crucial here to d
 npm run test
 ```
 
-## Additional information
-
-Implementing a scraper is not an easy task. You need to know how to use the browser automation library, how to use the Chrome DevTools Protocol, and how to use the DOM API. You also need to know how to use the `async/await` syntax and how to use `Promise`. If you are not familiar with these concepts, I suggest you to learn them first before trying to implement a scraper. Our target is create as many as possible scraper for many public services. So, we need to make sure that the code is easy to understand and easy to maintain.
-
-At some point maybe you will need to dealing with proxy, captcha, or other things that can make your scraper fail. You need to know how to handle these things and always make sure that your scraper is working properly.
-
-Scraping implementation usually involves a lot of trial and error. You need to try many things to make sure that your scraper is working properly. You need to know how to debug your scraper and how to fix the problem. In real world scenario you also likely to put a scraper in a server and run it periodically so you can get always fresh data.
-
-Long story short, it's complicated. But, it's also fun.
-
 ## Using remote browser
 
 If you want to use remote browser to do the scraping, I suggest using Browserless instance, we use Docker to run it. You can follow the instruction [here](https://docs.browserless.io/docs/docker.html) to install it on your machine. On each script we can configure to use remote browser (via Chrome DevTools Protocol) by setting the `remoteBrowserUri` on `scrape()` function argument. Just see the source code for the details.
 
 ## Questions and professional services
 
-If you have any questions, please drop an issue on this repository. Professional support and consulting is also available, please contact me at <<sony@sony-ak.com>>
+If you have any questions, please drop an issue on this repository. Professional support and consulting is also available, please contact me at <<sony@sony-ak.com>>.
 
 ## Sponsor
 
