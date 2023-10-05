@@ -15,7 +15,7 @@ import type { News, ScrapeArgument } from "../../../types";
 const baseUrlPath = "https://food.detik.com/indeks/";
 const queryStringStart = ""; // e.g. "?page="
 
-const listPageItemsSelector = 'xpath=//div[@id="indeks-container"]//article';
+const listPageItemsSelector = 'div[id="indeks-container"] article';
 const listPageTitleSelector = "h3.media__title";
 const listPageLinkSelector = "a[href]";
 const listPageImageSelector = ".media__image img[src]";
@@ -199,6 +199,8 @@ export const scrape = async (scrape_argument: ScrapeArgument = {}) => {
 
             let publishedDateTime =
               await getPublishedDatetimeVariant3(detailPageLocator);
+
+            // Get publishedDateTimeUtc
 
             const publishedDateTimeUtc = new Date(
               publishedDateTime,

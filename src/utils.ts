@@ -80,21 +80,6 @@ export async function getTextContentFromLocatorSelector(
   );
 }
 
-// export async function getArrayFromLocatorSelector(
-//   locator: Locator,
-//   selector: string,
-// ) {
-//   return await locator.evaluate(
-//     (el, args) => {
-//       const elements = el.querySelectorAll(args.selector);
-//       return Array.from(elements).map((element) => element.textContent?.trim());
-//     },
-//     {
-//       selector: selector,
-//     },
-//   );
-// }
-
 export async function getArrayFromLocatorSelector(
   locator: Locator,
   selector: string,
@@ -189,6 +174,8 @@ export async function getPublishedDatetimeVariant3(locator: Locator) {
 
   result = result.replace(" ", "T");
   result = result + "+07:00";
+
+  result = result.replace(/\//g, "-");
 
   return result;
 }

@@ -11,7 +11,7 @@ test(
   async () => {
     const results: News[] = await scrape();
 
-    expect(results).toBeTruthy();
+    expect(results.length).toBeGreaterThan(0);
 
     const expectedSubset = {
       title: expect.any(String),

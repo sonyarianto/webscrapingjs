@@ -16,7 +16,7 @@ import type { News, ScrapeArgument } from "../../../types";
 const baseUrlPath = "https://www.detik.com/terpopuler";
 const queryStringStart = ""; // e.g. "?page="
 
-const listPageItemsSelector = 'xpath=//div[@id="indeks-container"]//article';
+const listPageItemsSelector = "div.grid-row.list-content article";
 const listPageTitleSelector = "h3.media__title";
 const listPageLinkSelector = "a[href]";
 const listPageImageSelector = ".media__image img[src]";
@@ -24,7 +24,7 @@ const listPageImageSelector = ".media__image img[src]";
 const detailImageUrlSelector = 'meta[property="og:image"]';
 const detailLocalCategorySelector = "div.page__breadcrumb > a:last-child";
 const detailLocalSubCategorySelector = null;
-const detailLocalTagsSelector = "div.detail__body-tag > div.nav > a.nav__item";
+const detailLocalTagsSelector = 'meta[name="keywords"]';
 const detailAuthorsSelector = 'meta[name="author"]';
 const detailShortDescriptionSelector = 'meta[property="og:description"]';
 const detailPublishedDateTimeSelector = null;
@@ -55,7 +55,7 @@ export const scrape = async (scrape_argument: ScrapeArgument = {}) => {
       pageIndexes.map(async (pageIndex) => {
         const listPage = await context.newPage();
 
-        const listPageUrl = `${baseUrlPath}${queryStringStart}${pageIndex}`;
+        const listPageUrl = `${baseUrlPath}${queryStringStart}`;
 
         await processExcludedResourceTypes(
           listPage,
@@ -171,12 +171,30 @@ export const scrape = async (scrape_argument: ScrapeArgument = {}) => {
               );
             }
 
+            // If detailLocalCategory === null then try this
+
+            if (result.link.includes("travel.detik.com")) {
+              detailLocalCategory = "Travel";
+            } else if (result.link.includes("wolipop.detik.com")) {
+              detailLocalCategory = "Wolipop";
+            }
+
             // Get detailLocalTags
 
             let detailLocalTags = (await getArrayFromLocatorSelector(
               detailPageLocator,
               detailLocalTagsSelector,
             )) as string[] | null;
+
+            // If detailLocalTags === null then try this
+
+            detailLocalTags =
+              await getArraySplitFromAttributeFromLocatorSelector(
+                detailPageLocator,
+                detailLocalTagsSelector,
+                "content",
+                ",",
+              );
 
             // Get detailAuthors
 
@@ -207,6 +225,8 @@ export const scrape = async (scrape_argument: ScrapeArgument = {}) => {
               publishedDateTime =
                 await getPublishedDatetimeVariant2(detailPageLocator);
             }
+
+            // Get publishedDateTimeUtc
 
             const publishedDateTimeUtc = new Date(
               publishedDateTime,
