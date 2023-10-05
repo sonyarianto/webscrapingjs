@@ -82,7 +82,7 @@ If you want to use remote browser to do the scraping, I suggest using Browserles
 
 ## Questions and professional services
 
-If you have any questions, please drop an issue on this repository. Professional support and consulting is also available, please contact me at <<sony@sony-ak.com>>
+If you have any questions, please drop an issue on this repository. Professional support and consulting is also available, please contact me at <<sony@sony-ak.com>>.
 
 ## Sponsor
 
