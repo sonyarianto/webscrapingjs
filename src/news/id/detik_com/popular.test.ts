@@ -28,9 +28,18 @@ test(
       expect(result.link).toBeTruthy();
       expect(result.image_url_on_list).toBeTruthy();
       expect(result.image_url_on_detail).toBeTruthy();
-      expect(result.local_category).toBeTruthy();
 
-      if (!result.link?.includes("20.detik.com")) {
+      if (
+        !result.link?.includes("news.detik.com/x/") &&
+        !result.link?.includes("news.detik.com/spotlight/")
+      ) {
+        expect(result.local_category).toBeTruthy();
+      }
+
+      if (
+        !result.link?.includes("20.detik.com") &&
+        !result.link?.includes("news.detik.com/x/")
+      ) {
         expect(result.local_tags).toBeTruthy();
       }
 

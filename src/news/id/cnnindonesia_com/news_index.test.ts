@@ -29,11 +29,7 @@ test(
       expect(result.image_url_on_list).toBeTruthy();
       expect(result.image_url_on_detail).toBeTruthy();
       expect(result.local_category).toBeTruthy();
-
-      if (!result.link?.includes("20.detik.com")) {
-        expect(result.local_tags).toBeTruthy();
-      }
-
+      expect(result.local_sub_category).toBeTruthy();
       expect(result.authors).toBeTruthy();
       expect(result.short_description).toBeTruthy();
       expect(result.published_datetime).toBeTruthy();

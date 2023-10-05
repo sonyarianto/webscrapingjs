@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "format": "prettier ./src ./*.ts --write",
-    "test": "vitest --run",
+    "test": "vitest --run --bail 1",
     "test:no-threads": "vitest --run --no-threads",
     "build": "tsup ./src/ --clean"
   },
