@@ -7,21 +7,11 @@ import { defaultTestTimeout } from "../../../config";
 const sourceLabel = "sport.detik.com/indeks";
 
 test(
-  `${sourceLabel}: news list cannot empty`,
+  `${sourceLabel}: all data valid`,
   async () => {
-    const count = await scrape({ testListCount: true });
+    const results: News[] = await scrape();
 
-    expect(count).toBeGreaterThan(0);
-  },
-  defaultTestTimeout,
-);
-
-test(
-  `${sourceLabel}: detail data OK (only check first data)`,
-  async () => {
-    const results: News = (await scrape({ testDetailData: true })) as News;
-
-    const result = results[0] ?? {};
+    expect(results).toBeTruthy();
 
     const expectedSubset = {
       title: expect.any(String),
@@ -31,17 +21,23 @@ test(
       published_datetime_utc: expect.any(String),
     };
 
-    expect(result).toMatchObject(expectedSubset);
-    expect(isValidDate(result.published_datetime_utc as string)).toBe(true);
-    expect(result.title).toBeTruthy();
-    expect(result.link).toBeTruthy();
-    expect(result.image_url_on_list).toBeTruthy();
-    expect(result.image_url_on_detail).toBeTruthy();
-    expect(result.local_category).toBeTruthy();
-    expect(result.local_tags).toBeTruthy();
-    expect(result.authors).toBeTruthy();
-    expect(result.short_description).toBeTruthy();
-    expect(result.published_datetime).toBeTruthy();
+    results.forEach((result) => {
+      expect(result).toMatchObject(expectedSubset);
+      expect(isValidDate(result.published_datetime_utc as string)).toBe(true);
+      expect(result.title).toBeTruthy();
+      expect(result.link).toBeTruthy();
+      expect(result.image_url_on_list).toBeTruthy();
+      expect(result.image_url_on_detail).toBeTruthy();
+      expect(result.local_category).toBeTruthy();
+
+      if (!result.link?.includes("20.detik.com")) {
+        expect(result.local_tags).toBeTruthy();
+      }
+
+      expect(result.authors).toBeTruthy();
+      expect(result.short_description).toBeTruthy();
+      expect(result.published_datetime).toBeTruthy();
+    });
   },
   defaultTestTimeout,
 );

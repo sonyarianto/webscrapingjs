@@ -20,8 +20,6 @@ export interface News {
 export interface ScrapeArgument {
   startPageIndex?: number; // not all scraper support this
   endPageIndex?: number; // not all scraper support this
-  testListCount?: boolean; // used by test runner to check if the scraper is working properly, check the number of data on the list page
-  testDetailData?: boolean; // used by test runner to check if the scraper is working properly, check the detail data completeness
   verbose?: boolean; // toggle for verbose logging, default to false, means no logging
   remoteBrowserUri?: string; // e.g. "ws://...", if not provided, use built-in chromium, if provided, use remote chromium defined by the uri
 }

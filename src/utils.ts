@@ -38,12 +38,12 @@ export function verboseBrowserUsed(scrape_argument: any) {
         : false
     ) {
       console.log(
-        `#remote browser ${
+        `#using remote browser at ${
           (scrape_argument?.remoteBrowserUri ?? null) as string
         }.`,
       );
     } else {
-      console.log(`#built-in browser chromium.`);
+      console.log(`#using built-in browser chromium.`);
     }
   }
 }
@@ -177,4 +177,18 @@ export async function getPublishedDatetimeVariant2(locator: Locator) {
     }
     return null; // Return null if not found
   });
+}
+
+export async function getPublishedDatetimeVariant3(locator: Locator) {
+  let result = await locator.evaluate(
+    (el) =>
+      (
+        el.querySelector('meta[name="publishdate"]') as HTMLMetaElement
+      )?.content?.trim() ?? null,
+  );
+
+  result = result.replace(" ", "T");
+  result = result + "+07:00";
+
+  return result;
 }

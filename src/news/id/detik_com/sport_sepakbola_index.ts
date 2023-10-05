@@ -14,6 +14,8 @@ import {
 import type { News, ScrapeArgument } from "../../../types";
 
 const baseUrlPath = "https://sport.detik.com/sepakbola/indeks/";
+const queryStringStart = ""; // e.g. "?page="
+
 const listPageItemsSelector = 'xpath=//div[@id="indeks-container"]//article';
 const listPageTitleSelector = "h3.media__title";
 const listPageLinkSelector = "a[href]";
@@ -30,8 +32,6 @@ const detailPublishedDateTimeSelector = null;
 const timeZoneId = "Asia/Jakarta";
 const listPageExcludedResourceTypes = [...excludedResourceTypes];
 const detailExcludedResourceTypes = [...excludedResourceTypes];
-
-let _countListPageItems = 0;
 
 listPageExcludedResourceTypes.splice(
   listPageExcludedResourceTypes.indexOf("image"),
@@ -54,24 +54,18 @@ export const scrape = async (scrape_argument: ScrapeArgument = {}) => {
 
     let allItems: News[] = [];
 
+    // Start scraping of the list page
+
     let pageIndexes = Array.from(
       { length: scrape_argument.endPageIndex ?? 1 },
       (_, i) => i + (scrape_argument.startPageIndex ?? 1),
     );
 
-    if (scrape_argument.testListCount ?? false) {
-      pageIndexes = [1];
-    }
-
-    if (scrape_argument.testDetailData ?? false) {
-      pageIndexes = [1];
-    }
-
     await Promise.allSettled(
       pageIndexes.map(async (pageIndex) => {
         const listPage = await context.newPage();
 
-        const listPageUrl = `${baseUrlPath}${pageIndex}`;
+        const listPageUrl = `${baseUrlPath}${queryStringStart}${pageIndex}`;
 
         await processExcludedResourceTypes(
           listPage,
@@ -88,20 +82,6 @@ export const scrape = async (scrape_argument: ScrapeArgument = {}) => {
           console.log(
             `P#${pageIndex} C#${countListPageItems} U#${listPageUrl}`,
           );
-        }
-
-        if (scrape_argument.testListCount ?? false) {
-          await listPage.close();
-          await context.close();
-          await browser.close();
-
-          _countListPageItems = countListPageItems;
-
-          return;
-        }
-
-        if (scrape_argument.testDetailData ?? false) {
-          listPageItemsLocator = listPageItemsLocator.first();
         }
 
         const resultListPageItems = await listPageItemsLocator.evaluateAll(
@@ -146,6 +126,8 @@ export const scrape = async (scrape_argument: ScrapeArgument = {}) => {
         );
 
         listPage.close();
+
+        // Start scraping of the detail page
 
         await Promise.allSettled(
           resultListPageItems.map(async (result, index) => {
@@ -218,13 +200,11 @@ export const scrape = async (scrape_argument: ScrapeArgument = {}) => {
 
             // Get detailShortDescription
 
-            let detailShortDescription =
-              (
-                await detailPageLocator.evaluate((el, args) => {
-                  const description = el.querySelector(args) as HTMLMetaElement;
-                  return description?.content?.trim() ?? null;
-                }, detailShortDescriptionSelector)
-              )?.trim() ?? null;
+            let detailShortDescription = await getAttributeFromLocatorSelector(
+              detailPageLocator,
+              detailShortDescriptionSelector,
+              "content",
+            );
 
             // Get published_datetime
 
@@ -264,10 +244,6 @@ export const scrape = async (scrape_argument: ScrapeArgument = {}) => {
 
     await context.close();
     await browser.close();
-
-    if (scrape_argument.testListCount ?? false) {
-      return _countListPageItems;
-    }
 
     return allItems;
   } catch (error) {
