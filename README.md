@@ -59,6 +59,7 @@ We are using Vitest for running test. The test purpose is very crucial here to d
 
 ```bash
 npm run test
+
 # or target specific directory that contains phrase
 # npm run test -- detik_com
 ```
