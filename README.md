@@ -28,40 +28,25 @@ Here is the sample of the results.
 ```json
 [
   {
-    "title": "Cak Imin soal Gugatan Usia Capres-cawapres: Masih Aja Ribet Aturan",
-    "link": "https://news.detik.com/pemilu/d-6953111/cak-imin-soal-gugatan-usia-capres-cawapres-masih-aja-ribet-aturan",
-    "image_url_on_list": "https://awsimages.detik.net.id/community/media/visual/2023/09/23/cak-imin-memakai-kaus-nu-wildandetikcom_43.jpeg?w=210&q=90",
-    "image_url_on_list_2": "https://awsimages.detik.net.id/community/media/visual/2023/09/23/cak-imin-memakai-kaus-nu-wildandetikcom_43.jpeg",
-    "image_url_on_detail": "https://awsimages.detik.net.id/api/wm/2023/09/23/cak-imin-memakai-kaus-nu-wildandetikcom_169.jpeg?wid=54&w=650&v=1&t=jpeg",
-    "image_url_on_detail_2": "https://awsimages.detik.net.id/api/wm/2023/09/23/cak-imin-memakai-kaus-nu-wildandetikcom_169.jpeg",
-    "local_category": "Pemilu",
-    "local_tags": [
-      "cak imin",
-      "gugatan usia cawapres",
-      "mk",
-      "pilpres 2024",
-      "politik"
-    ],
-    "authors": ["Kadek Melda Luxiana"],
-    "short_description": "Ketum PKB Muhaimin Iskandar atau Cak Imin menyoroti gugatan batas usia capres dan cawapres yang belum putus di Mahkamah Konstitusi (MK).",
-    "published_datetime": "2023-09-27T14:00:06+07:00",
-    "published_datetime_utc": "2023-09-27T07:00:06.000Z",
-    "internal_index": 18
-  },
-  {
-    "title": "Rafael Alun Dapat Dana Taktis Konsultan Pajak karena Bawa Banyak Klien Besar",
-    "link": "https://news.detik.com/berita/d-6953100/rafael-alun-dapat-dana-taktis-konsultan-pajak-karena-bawa-banyak-klien-besar",
-    "image_url_on_list": "https://awsimages.detik.net.id/community/media/visual/2023/09/27/sidang-rafael-alun-yogi-detikcom_43.jpeg?w=210&q=90",
-    "image_url_on_list_2": "https://awsimages.detik.net.id/community/media/visual/2023/09/27/sidang-rafael-alun-yogi-detikcom_43.jpeg",
-    "image_url_on_detail": "https://awsimages.detik.net.id/api/wm/2023/09/27/sidang-rafael-alun-yogi-detikcom_169.jpeg?wid=54&w=650&v=1&t=jpeg",
-    "image_url_on_detail_2": "https://awsimages.detik.net.id/api/wm/2023/09/27/sidang-rafael-alun-yogi-detikcom_169.jpeg",
+    "_internal_page": 1,
+    "title": "Bertemu PM Azerbaijan, MenPAN-RB: Kita Akan Terus Perkuat Kolaborasi",
+    "link": "https://news.detik.com/berita/d-6975988/bertemu-pm-azerbaijan-menpan-rb-kita-akan-terus-perkuat-kolaborasi",
+    "image_url_on_list": "https://awsimages.detik.net.id/community/media/visual/2023/10/11/kemenpan-rb-1_43.jpeg?w=210&q=90",
+    "image_url_on_list_2": "https://awsimages.detik.net.id/community/media/visual/2023/10/11/kemenpan-rb-1_43.jpeg",
+    "image_url_on_detail": "https://awsimages.detik.net.id/api/wm/2023/10/11/kemenpan-rb-1_169.jpeg?wid=54&w=650&v=1&t=jpeg",
+    "image_url_on_detail_2": "https://awsimages.detik.net.id/api/wm/2023/10/11/kemenpan-rb-1_169.jpeg",
     "local_category": "Berita",
-    "local_tags": ["rafael alun trisambodo", "kpk", "hukum"],
-    "authors": ["Yogi Ernes"],
-    "short_description": "Jaksa pada KPK mencecar soal dana taktis perusahaan konsultan pajak yang terafiliasi dengan mantan Pejabat Ditjen Pajak Rafael Alun Trisambodo.",
-    "published_datetime": "2023-09-27T13:54:54+07:00",
-    "published_datetime_utc": "2023-09-27T06:54:54.000Z",
-    "internal_index": 19
+    "local_tags": [
+      "kemenpanrb",
+      "kemenpan rb"
+    ],
+    "authors": [
+      "Hana Nushratu Uzma"
+    ],
+    "short_description": "Menteri Pendayagunaan Aparatur Negara dan Reformasi Birokrasi (MenPAN-RB) Abdullah Azwar Anas bertemu Perdana Menteri (PM) Azerbaijan Ali Asadov di Baku.",
+    "published_datetime": "2023-10-11T09:15:30+07:00",
+    "published_datetime_utc": "2023-10-11T02:15:30.000Z",
+    "_internal_index": 8
   }
 ]
 ```
@@ -74,11 +59,15 @@ We are using Vitest for running test. The test purpose is very crucial here to d
 
 ```bash
 npm run test
+# or target specific directory that contains phrase
+# npm run test -- detik_com
 ```
 
-## Using remote browser
+## Scraping techniques
 
-If you want to use remote browser to do the scraping, I suggest using Browserless instance, we use Docker to run it. You can follow the instruction [here](https://docs.browserless.io/docs/docker.html) to install it on your machine. On each script we can configure to use remote browser (via Chrome DevTools Protocol) by setting the `remoteBrowserUri` on `scrape()` function argument. Just see the source code for the details.
+Each script usually will use various technique to do the scraping. Here are the list of techniques that we use:
+
+- [x] Scraping using fetch API and JSDOM (for non JavaScript rendered website)
 
 ## Questions and professional services
 
@@ -93,4 +82,3 @@ If you like this project, please consider to sponsor me on this repository. Your
 MIT
 
 Maintained by Sony Arianto Kurniawan <<sony@sony-ak.com>> and contributors.
-
