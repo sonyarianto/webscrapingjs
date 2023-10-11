@@ -16,7 +16,7 @@ test(
     const expectedSubset = {
       title: expect.any(String),
       link: expect.any(String),
-      image_url_on_list: expect.any(String),
+      image_url_on_detail: expect.any(String),
       authors: expect.any(Array),
       published_datetime_utc: expect.any(String),
     };
@@ -26,7 +26,6 @@ test(
       expect(isValidDate(result.published_datetime_utc as string)).toBe(true);
       expect(result.title).toBeTruthy();
       expect(result.link).toBeTruthy();
-      expect(result.image_url_on_list).toBeTruthy();
       expect(result.image_url_on_detail).toBeTruthy();
       expect(result.local_category).toBeTruthy();
 

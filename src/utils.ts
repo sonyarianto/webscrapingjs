@@ -65,6 +65,35 @@ export async function getAttributeFromLocatorSelector(
   );
 }
 
+export function getAttributeFromElement(
+  element,
+  selector: string,
+  attribute: string,
+) {
+  return (
+    element.querySelector(selector).getAttribute(attribute)?.trim() ?? null
+  );
+}
+
+export function getTextContentFromElement(element, selector: string) {
+  return element.querySelector(selector)?.textContent?.trim() ?? null;
+}
+
+export function getAttributeFromElementThenSplit(
+  element,
+  selector: string,
+  split: string,
+) {
+  return (
+    element
+      .querySelector(selector)
+      .getAttribute("content")
+      ?.trim()
+      .split(split)
+      .map((item) => item.trim()) ?? null
+  );
+}
+
 export async function getTextContentFromLocatorSelector(
   locator: Locator,
   selector: string,

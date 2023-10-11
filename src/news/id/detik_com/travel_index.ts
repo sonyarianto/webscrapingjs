@@ -1,159 +1,102 @@
-import { chromium } from "playwright";
-import { excludedResourceTypes } from "../../../config";
-import {
-  browserSelector,
-  processExcludedResourceTypes,
-  verboseBrowserUsed,
-  getAttributeFromLocatorSelector,
-  getTextContentFromLocatorSelector,
-  getArrayFromLocatorSelector,
-  getArraySplitFromAttributeFromLocatorSelector,
-  getPublishedDatetimeVariant1,
-  getPublishedDatetimeVariant2,
-} from "../../../utils";
+import { JSDOM } from "jsdom";
 import type { News, ScrapeArgument } from "../../../types";
-
-const baseUrlPath = "https://travel.detik.com/indeks/";
+import {
+  getAttributeFromElement,
+  getTextContentFromElement,
+  getAttributeFromElementThenSplit,
+} from "../../../utils";
+const baseURLPath = "https://travel.detik.com/indeks/";
 const queryStringStart = ""; // e.g. "?page="
-const listPageItemsSelector = "div.content.right article";
+const listPageItemsSelector =
+  '//div[contains(@class, "content") and contains(@class, "right")]//article';
 const listPageTitleSelector = "h3";
 const listPageLinkSelector = "a[href]";
-const listPageImageSelector = null;
-const detailImageUrlSelector = 'meta[property="og:image"]';
+const detailImageURLSelector = 'meta[property="og:image"]';
 const detailLocalCategorySelector = "div.page__breadcrumb > a:last-child";
-const detailLocalSubCategorySelector = null;
 const detailLocalTagsSelector = 'meta[name="keywords"]';
 const detailAuthorsSelector = 'meta[name="author"]';
 const detailShortDescriptionSelector = 'meta[property="og:description"]';
-const detailPublishedDateTimeSelector = null;
-const timeZoneId = "Asia/Jakarta";
-const listPageExcludedResourceTypes = [...excludedResourceTypes];
-const detailExcludedResourceTypes = [...excludedResourceTypes];
 
 export const scrape = async (scrape_argument: ScrapeArgument = {}) => {
-  try {
-    verboseBrowserUsed(scrape_argument);
+  let allItems: News[] = [];
 
-    const browser = await browserSelector(chromium, scrape_argument);
-    const context = await browser.newContext({
-      timezoneId: timeZoneId,
-    });
+  // Start scraping of the list page
 
-    let allItems: News[] = [];
+  let pageIndexes = Array.from(
+    { length: scrape_argument.endPageIndex ?? 1 },
+    (_, i) => i + (scrape_argument.startPageIndex ?? 1),
+  );
 
-    // Start scraping of the list page
+  await Promise.allSettled(
+    pageIndexes.map(async (pageIndex) => {
+      const listPageURL = `${baseURLPath}${queryStringStart}${pageIndex}`;
 
-    let pageIndexes = Array.from(
-      { length: scrape_argument.endPageIndex ?? 1 },
-      (_, i) => i + (scrape_argument.startPageIndex ?? 1),
-    );
+      const listPageHTML = await fetch(listPageURL).then((res) => res.text());
 
-    await Promise.allSettled(
-      pageIndexes.map(async (pageIndex) => {
-        const listPage = await context.newPage();
+      const listPageDOM = new JSDOM(listPageHTML);
 
-        const listPageUrl = `${baseUrlPath}${queryStringStart}${pageIndex}`;
+      const listPage = listPageDOM.window.document.evaluate(
+        listPageItemsSelector,
+        listPageDOM.window.document,
+        null,
+        listPageDOM.window.XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
+        null,
+      );
 
-        await processExcludedResourceTypes(
-          listPage,
-          listPageExcludedResourceTypes,
-        );
+      const countListPageItems = listPage.snapshotLength;
 
-        await listPage.goto(listPageUrl);
+      if (scrape_argument.verbose ?? false) {
+        console.log(`P#${pageIndex} C#${countListPageItems} U#${listPageURL}`);
+      }
 
-        let listPageItemsLocator = listPage.locator(listPageItemsSelector);
+      // Scraping of the list page
 
-        const countListPageItems = await listPageItemsLocator.count();
+      await Promise.allSettled(
+        Array.from({ length: countListPageItems }, (_, i) => i).map(
+          async (index) => {
+            const item: News = {
+              _internal_page: pageIndex,
+            };
 
-        if (scrape_argument.verbose ?? false) {
-          console.log(
-            `P#${pageIndex} C#${countListPageItems} U#${listPageUrl}`,
-          );
-        }
+            const listPageItem = listPage.snapshotItem(index);
 
-        const resultListPageItems = await listPageItemsLocator.evaluateAll(
-          (el, args) =>
-            el.map((el) => {
-              const item: News = {
-                _internal_page: args.pageIndex,
-              };
+            // Get listTitle
 
-              let listTitle =
-                el
-                  .querySelector(args.listPageTitleSelector)
-                  ?.textContent?.trim() ?? null;
-
-              let listLink =
-                (
-                  el.querySelector(
-                    args.listPageLinkSelector,
-                  ) as HTMLAnchorElement
-                )?.href.trim() ?? null;
-
-              let listImageUrl =
-                (
-                  el.querySelector(
-                    args.listPageImageSelector,
-                  ) as HTMLImageElement
-                )?.src.trim() ?? null;
-
-              return {
-                ...item,
-                title: listTitle,
-                link: listLink,
-                image_url_on_list: listImageUrl,
-              };
-            }),
-          {
-            listPageTitleSelector: listPageTitleSelector,
-            listPageLinkSelector: listPageLinkSelector,
-            listPageImageSelector: listPageImageSelector,
-            pageIndex: pageIndex,
-          },
-        );
-
-        listPage.close();
-
-        // Start scraping of the detail page
-
-        await Promise.allSettled(
-          resultListPageItems.map(async (result, index) => {
-            if (!result.link) return;
-            if (!result.title) return;
-
-            const detailPage = await context.newPage();
-
-            processExcludedResourceTypes(
-              detailPage,
-              detailExcludedResourceTypes,
+            let listTitle = getTextContentFromElement(
+              listPageItem,
+              listPageTitleSelector,
             );
 
-            await detailPage.goto(result.link);
+            // Get listLink
 
-            if (scrape_argument.verbose ?? false) {
-              console.log(`P#${pageIndex} I#${index} ${result.title}`);
-            }
+            let listLink = getAttributeFromElement(
+              listPageItem,
+              listPageLinkSelector,
+              "href",
+            );
 
-            const detailPageLocator = detailPage.locator("html");
+            // Scraping of the detail page
 
-            // Get detailImageUrl
+            const detailPageHTML = await fetch(listLink).then((res) =>
+              res.text(),
+            );
 
-            let detailImageUrl = await getAttributeFromLocatorSelector(
-              detailPageLocator,
-              detailImageUrlSelector,
+            const detailPageDOM = new JSDOM(detailPageHTML);
+
+            const detailPage = detailPageDOM.window.document;
+
+            // Get detailImageURL
+
+            let detailImageURL = getAttributeFromElement(
+              detailPage,
+              detailImageURLSelector,
               "content",
             );
 
-            // Get detailImageUrlWithoutQueryString, without query string
+            // Get detailImageURLWithoutQueryString, without query string
 
-            const detailImageUrlWithoutQueryString =
-              detailImageUrl?.split("?")[0];
-
-            // Get listImageUrl and listImageUrlWithoutQueryString
-
-            let listImageUrl = detailImageUrl;
-            const listImageUrlWithoutQueryString =
-              listImageUrl?.split("?")[0] ?? null;
+            let detailImageURLWithoutQueryString =
+              detailImageURL?.split("?")[0] ?? null;
 
             // Get detailLocalCategory
 
@@ -161,76 +104,107 @@ export const scrape = async (scrape_argument: ScrapeArgument = {}) => {
 
             // Get detailLocalTags
 
-            let detailLocalTags =
-              await getArraySplitFromAttributeFromLocatorSelector(
-                detailPageLocator,
-                detailLocalTagsSelector,
-                "keywords",
-                ",",
-              );
+            let detailLocalTags = getAttributeFromElementThenSplit(
+              detailPage,
+              detailLocalTagsSelector,
+              ",",
+            );
 
             // Get detailAuthors
 
-            let detailAuthors =
-              (await getArraySplitFromAttributeFromLocatorSelector(
-                detailPageLocator,
-                detailAuthorsSelector,
-                "content",
-                ",",
-              )) as string[] | null;
+            let detailAuthors = getAttributeFromElementThenSplit(
+              detailPage,
+              detailAuthorsSelector,
+              ",",
+            );
 
             // Get detailShortDescription
 
-            let detailShortDescription = await getAttributeFromLocatorSelector(
-              detailPageLocator,
+            let detailShortDescription = getAttributeFromElement(
+              detailPage,
               detailShortDescriptionSelector,
               "content",
             );
 
-            // Get published_datetime
+            // Get detailPublishedDateTime
 
-            let publishedDateTime =
-              await getPublishedDatetimeVariant1(detailPageLocator);
+            let detailPublishedDateTime =
+              Array.from(
+                detailPage.querySelectorAll(
+                  'script[type="application/ld+json"]',
+                ),
+              )
+                .map((script) =>
+                  JSON.parse(
+                    ((script as HTMLMetaElement).textContent as string) || "{}",
+                  ),
+                )
+                .find(
+                  (json) => json["@type"] === "WebPage" && json.datePublished,
+                )?.datePublished || null;
 
-            // If publishedDateTime === null then try this
+            // Get detailPublishedDateTimeUTC
 
-            if (publishedDateTime === null) {
-              publishedDateTime =
-                await getPublishedDatetimeVariant2(detailPageLocator);
+            let detailPublishedDateTimeUTC =
+              new Date(detailPublishedDateTime).toISOString() ?? null;
+
+            // Some data normalization, adjustment, try with other selector, etc.
+
+            // If detailPublishedDateTime === null then try this
+
+            if (detailPublishedDateTime === null) {
+              detailPublishedDateTime =
+                Array.from(
+                  detailPage.querySelectorAll(
+                    'script[type="application/ld+json"]',
+                  ),
+                )
+                  .map((script) =>
+                    JSON.parse(
+                      ((script as HTMLMetaElement).textContent as string) ||
+                        "{}",
+                    ),
+                  )
+                  .find(
+                    (json) =>
+                      json["@type"] === "VideoObject" && json.uploadDate,
+                  )?.uploadDate || null;
+
+              detailPublishedDateTimeUTC =
+                new Date(detailPublishedDateTime).toISOString() ?? null;
             }
 
-            // Get publishedDateTimeUtc
-
-            const publishedDateTimeUtc = new Date(
-              publishedDateTime,
-            ).toISOString();
-
-            await detailPage.close();
-
-            allItems.push({
-              ...result,
-              image_url_on_list: listImageUrl,
-              image_url_on_list_2: listImageUrlWithoutQueryString,
-              image_url_on_detail: detailImageUrl,
-              image_url_on_detail_2: detailImageUrlWithoutQueryString,
+            const itemReady = {
+              ...item,
+              title: listTitle,
+              link: listLink,
+              image_url_on_detail: detailImageURL,
+              image_url_on_detail_2: detailImageURLWithoutQueryString,
               local_category: detailLocalCategory,
               local_tags: detailLocalTags,
               authors: detailAuthors,
               short_description: detailShortDescription,
-              published_datetime: publishedDateTime,
-              published_datetime_utc: publishedDateTimeUtc,
+              published_datetime: detailPublishedDateTime,
+              published_datetime_utc: detailPublishedDateTimeUTC,
               _internal_index: index,
-            });
-          }),
-        );
-      }),
-    );
+            };
 
-    await context.close();
-    await browser.close();
+            if (scrape_argument.verbose ?? false) {
+              console.log(JSON.stringify(itemReady, null, 2));
+            }
 
-    return allItems;
-  } catch (error) {
-    throw error;
-  }
+            // Internal debug
+
+            // if (itemReady.local_category === null) {
+            //   process.exit(1);
+            // }
+
+            allItems.push(itemReady);
+          },
+        ),
+      );
+    }),
+  );
+
+  return allItems;
 };
